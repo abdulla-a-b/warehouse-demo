@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GUDAM™ · গুদাম — Warehouse KPI Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#14181D; --panel:#1C2229; --panel2:#222A33; --line:#2E3843;
+  --ink:#E8EDF2; --muted:#8A97A5; --dim:#5C6874;
+  --amber:#FFB020; --green:#34C77B; --red:#F0564A; --blue:#4FA3E3;
+  --mono:'IBM Plex Mono',monospace; --disp:'Saira',sans-serif; --body:'IBM Plex Sans','Noto Sans Bengali',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;min-height:100vh;display:flex;flex-direction:column}
+.bn{font-family:'Noto Sans Bengali',var(--body)}
+/* ---------- header ---------- */
+header{border-bottom:1px solid var(--line);background:linear-gradient(180deg,#1A2027,#14181D)}
+.hz{height:6px;background:repeating-linear-gradient(-45deg,var(--amber) 0 14px,#14181D 14px 28px)}
+.hwrap{max-width:1240px;margin:0 auto;padding:18px 20px 0;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between}
+.brand h1{font-family:var(--disp);font-weight:800;font-size:30px;letter-spacing:.5px;line-height:1}
+.brand h1 .tm{font-size:13px;vertical-align:super;color:var(--amber)}
+.brand h1 .bnw{color:var(--amber);font-family:'Noto Sans Bengali';font-weight:700}
+.brand .sub{color:var(--muted);font-size:12.5px;margin-top:4px;letter-spacing:.4px;text-transform:uppercase;font-family:var(--disp);font-weight:500}
+.hctl{display:flex;gap:10px;align-items:center;padding-bottom:2px}
+.langbtn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:7px 14px;cursor:pointer;font-family:var(--mono);font-size:13px}
+.langbtn:hover{border-color:var(--amber)}
+.tabs{max-width:1240px;margin:14px auto 0;padding:0 20px;display:flex;gap:4px}
+.tab{background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.6px;text-transform:uppercase;padding:10px 18px;cursor:pointer}
+.tab.on{color:var(--amber);border-bottom-color:var(--amber)}
+.tab:hover{color:var(--ink)}
+/* ---------- layout ---------- */
+main{flex:1;max-width:1240px;margin:0 auto;padding:22px 20px 40px;width:100%}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.spacer{flex:1}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:var(--panel);color:var(--muted);border:none;padding:9px 20px;cursor:pointer;font-family:var(--disp);font-weight:600;letter-spacing:.5px;font-size:14px}
+.seg button.on{background:var(--amber);color:#14181D}
+select,input[type=text],input[type=password],input[type=number],input[type=month],textarea{
+  background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:9px 12px;font-family:var(--body);font-size:14px;outline:none;min-width:0}
+select:focus,input:focus,textarea:focus{border-color:var(--amber)}
+.btn{background:var(--amber);color:#14181D;border:none;border-radius:6px;padding:10px 18px;font-family:var(--disp);font-weight:700;letter-spacing:.4px;font-size:14px;cursor:pointer;text-transform:uppercase}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:var(--red);color:#fff}
+.btn.sm{padding:6px 12px;font-size:12px}
+/* ---------- summary ---------- */
+.sumgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0}
+.sumcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.sumcard .lbl{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;font-family:var(--disp);font-weight:600}
+.sumcard .val{font-family:var(--mono);font-size:28px;font-weight:600;margin-top:4px}
+.g{color:var(--green)}.a{color:var(--amber)}.r{color:var(--red)}.b{color:var(--blue)}.m{color:var(--muted)}
+/* ---------- KPI cards: rack-label signature ---------- */
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:14px;margin-top:16px}
+.kcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative;display:flex}
+.tape{width:8px;flex:none}
+.tape.ok{background:var(--green)}
+.tape.warn{background:repeating-linear-gradient(-45deg,var(--amber) 0 8px,#3a2c07 8px 16px)}
+.tape.bad{background:repeating-linear-gradient(-45deg,var(--red) 0 8px,#3a1512 8px 16px)}
+.tape.na{background:var(--line)}
+.kbody{padding:12px 14px 12px;flex:1;min-width:0}
+.kslot{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:1px}
+.kname{font-family:var(--disp);font-weight:600;font-size:15px;line-height:1.25;margin:3px 0 8px;letter-spacing:.2px}
+.kvalrow{display:flex;align-items:baseline;gap:8px}
+.kval{font-family:var(--mono);font-size:26px;font-weight:600}
+.kunit{color:var(--muted);font-size:12px;font-family:var(--mono)}
+.ktarget{color:var(--muted);font-size:12px;margin-top:2px}
+.ktarget b{color:var(--ink);font-weight:500}
+.kspark{margin-top:8px}
+.kformula{color:var(--dim);font-size:11px;margin-top:6px;line-height:1.35}
+.kna{color:var(--dim);font-family:var(--mono);font-size:18px}
+/* ---------- admin ---------- */
+.panelbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:16px}
+.panelbox h3{font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:.6px;text-transform:uppercase;color:var(--amber);margin-bottom:14px}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.fld label{display:block;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px;font-family:var(--disp);font-weight:600}
+.fld input,.fld select{width:100%}
+.preview{font-family:var(--mono);color:var(--amber);font-size:15px;padding:9px 12px;background:var(--panel2);border:1px dashed var(--line);border-radius:6px}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13.5px}
+th{font-family:var(--disp);font-weight:600;text-transform:uppercase;letter-spacing:.6px;font-size:11.5px;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:8px 10px;border-bottom:1px solid #232B34;vertical-align:top}
+tr:hover td{background:#20272F}
+.pill{display:inline-block;border-radius:4px;padding:2px 8px;font-family:var(--mono);font-size:11.5px}
+.pill.ok{background:#123524;color:var(--green)}.pill.warn{background:#3a2c07;color:var(--amber)}.pill.bad{background:#3a1512;color:var(--red)}.pill.na{background:var(--panel2);color:var(--muted)}
+.lockbox{max-width:420px;margin:60px auto;text-align:center}
+.lockbox .ic{font-size:40px}
+.lockbox p{color:var(--muted);margin:10px 0 18px}
+.msg{border-radius:8px;padding:10px 14px;margin-top:12px;font-size:13.5px;display:none}
+.msg.ok{display:block;background:#123524;color:var(--green)}
+.msg.err{display:block;background:#3a1512;color:var(--red)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.readonly-note{display:inline-flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 12px;color:var(--muted);font-size:12.5px}
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);padding:18px 20px;text-align:center;color:var(--dim);font-size:12.5px}
+.gu{font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:1px}
+.gu span:nth-child(1){color:#F5A623}.gu span:nth-child(2){color:#22D3EE}.gu span:nth-child(3){color:#34C77B}.gu span:nth-child(4){color:#A78BFA}.gu span:nth-child(5){color:#FB923C}.gu span:nth-child(6){color:#FB7185}
+.gtag{color:var(--dim);font-size:11px;letter-spacing:.5px}
+@media (max-width:640px){ .brand h1{font-size:24px} .kgrid{grid-template-columns:1fr} }
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hz"></div>
+  <div class="hwrap">
+    <div class="brand">
+      <h1><span class="bnw">গুদাম</span> GUDAM<span class="tm">™</span></h1>
+      <div class="sub" id="subTitle">Goods & Utilization Data Analytics Matrix — Warehouse KPI Dashboard</div>
+    </div>
+    <div class="hctl">
+      <button class="langbtn" id="langBtn" onclick="toggleLang()">বাংলা</button>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab on" id="tabDash" onclick="showTab('dash')" data-i18n="tabDash">Dashboard</button>
+    <button class="tab" id="tabAdmin" onclick="showTab('admin')">🔒 <span data-i18n="tabAdmin">Admin</span></button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ============ PUBLIC DASHBOARD ============ -->
+<section id="viewDash">
+  <div class="row">
+    <div class="seg" id="whSeg">
+      <button class="on" onclick="setWH('RMW')" id="whR">RMW</button>
+      <button onclick="setWH('FGW')" id="whF">FGW</button>
+    </div>
+    <select id="monthSel" onchange="renderDash()"></select>
+    <span class="readonly-note">👁 <span data-i18n="viewOnly">View only — data managed by Admin</span></span>
+    <div class="spacer"></div>
+    <span class="readonly-note" id="lastSync"></span>
+  </div>
+
+  <div class="sumgrid">
+    <div class="sumcard"><div class="lbl" data-i18n="sumTracked">KPIs Reported</div><div class="val b" id="sTracked">0<span style="font-size:15px;color:var(--dim)">/20</span></div></div>
+    <div class="sumcard"><div class="lbl" data-i18n="sumOn">On Target</div><div class="val g" id="sOn">0</div></div>
+    <div class="sumcard"><div class="lbl" data-i18n="sumWatch">Watch</div><div class="val a" id="sWatch">0</div></div>
+    <div class="sumcard"><div class="lbl" data-i18n="sumOff">Off Target</div><div class="val r" id="sOff">0</div></div>
+    <div class="sumcard"><div class="lbl" data-i18n="sumHealth">JIT Health Score</div><div class="val" id="sHealth">—</div></div>
+  </div>
+
+  <div class="kgrid" id="kpiGrid"></div>
+</section>
+
+<!-- ============ ADMIN ============ -->
+<section id="viewAdmin" style="display:none">
+
+  <div id="lockScreen" class="lockbox">
+    <div class="ic">🔒</div>
+    <h3 style="font-family:var(--disp)" data-i18n="adminAccess">Admin Access</h3>
+    <p data-i18n="adminPrompt">Enter the admin password to add, update, replace or delete KPI records.</p>
+    <div class="row" style="justify-content:center">
+      <input type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')unlock()">
+      <button class="btn" onclick="unlock()" data-i18n="unlock">Unlock</button>
+    </div>
+    <div class="msg" id="pwMsg"></div>
+  </div>
+
+  <div id="adminArea" style="display:none">
+
+    <div class="panelbox">
+      <h3 id="formTitle" data-i18n="addEntry">Add KPI Entry</h3>
+      <div class="formgrid">
+        <div class="fld"><label data-i18n="fWh">Warehouse</label>
+          <select id="fWh" onchange="fillKpiSelect()"><option value="RMW">RMW — Raw Materials</option><option value="FGW">FGW — Finished Goods</option></select></div>
+        <div class="fld"><label>KPI</label><select id="fKpi" onchange="updateFormLabels()"></select></div>
+        <div class="fld"><label data-i18n="fMonth">Month</label><input type="month" id="fMonth"></div>
+        <div class="fld"><label id="numLbl">Numerator</label><input type="number" id="fNum" step="any" oninput="livePreview()"></div>
+        <div class="fld"><label id="denLbl">Denominator</label><input type="number" id="fDen" step="any" oninput="livePreview()"></div>
+        <div class="fld"><label data-i18n="fNote">Note (optional)</label><input type="text" id="fNote"></div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <div class="preview" id="calcPreview">= —</div>
+        <div class="spacer"></div>
+        <button class="btn ghost" id="cancelEditBtn" style="display:none" onclick="cancelEdit()" data-i18n="cancel">Cancel</button>
+        <button class="btn" id="saveBtn" onclick="saveEntry()" data-i18n="save">Save Entry</button>
+      </div>
+      <div class="msg" id="formMsg"></div>
+    </div>
+
+    <div class="panelbox">
+      <h3 data-i18n="records">KPI Records</h3>
+      <div class="row">
+        <select id="filterWh" onchange="renderTable()"><option value="">All warehouses</option><option value="RMW">RMW</option><option value="FGW">FGW</option></select>
+        <select id="filterMonth" onchange="renderTable()"><option value="">All months</option></select>
+        <input type="text" id="filterText" placeholder="Search KPI…" oninput="renderTable()" style="flex:1;min-width:150px">
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>WH</th><th>KPI</th><th data-i18n="thMonth">Month</th><th data-i18n="thInputs">Inputs</th><th data-i18n="thValue">Value</th><th>Status</th><th data-i18n="thNote">Note</th><th></th></tr></thead>
+          <tbody id="recTbody"></tbody>
+        </table>
+      </div>
+      <div class="toolbar">
+        <button class="btn ghost sm" onclick="exportJSON()" data-i18n="exportJson">⬇ Export JSON</button>
+        <button class="btn ghost sm" onclick="document.getElementById('importFile').click()" data-i18n="importJson">⬆ Import JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="btn ghost sm" onclick="exportCSV()">⬇ Export CSV</button>
+        <div class="spacer"></div>
+        <button class="btn danger sm" onclick="clearAll()" data-i18n="clearAll">Delete All Records</button>
+      </div>
+      <div class="msg" id="tblMsg"></div>
+    </div>
+
+    <div class="panelbox">
+      <h3 data-i18n="sync">Google Sheets Sync</h3>
+      <div class="row">
+        <input type="text" id="gsUrl" placeholder="Apps Script Web App URL (https://script.google.com/macros/s/…/exec)" style="flex:1;min-width:260px">
+        <button class="btn ghost" onclick="saveGsUrl()" data-i18n="saveUrl">Save URL</button>
+        <button class="btn ghost" onclick="loadFromSheet()" data-i18n="loadSheet">⟳ Load from Sheet</button>
+        <button class="btn" onclick="pushToSheet()" data-i18n="pushSheet">↑ Push to Sheet</button>
+      </div>
+      <div class="msg" id="syncMsg"></div>
+      <p style="color:var(--dim);font-size:12px;margin-top:10px" data-i18n="syncNote">Push replaces the sheet with the current records. Load replaces local records with the sheet contents. All data is also cached locally in this browser.</p>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="gu"><span>g</span><span>u</span><span>u</span><span>l</span><span>b</span><span>a</span></div>
+  <div class="gtag">technology for better performance</div>
+  <div style="margin-top:6px">GUDAM™ · গুদাম — an MBBC &amp; Company framework · JIT Warehouse KPI System · © 2026</div>
+</footer>
+
+<script>
+/* =========================================================
+   CONFIG
+========================================================= */
+// Default admin password: "gudam2026"  (SHA-256 hash below).
+// To change: run in browser console →  crypto.subtle.digest('SHA-256', new TextEncoder().encode('newpass')).then(b=>console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+const ADMIN_HASH = "b972c7e6ec208912dcf2de017c4e2e3989b2f9f1da40ceb1519695c924a16d72";
+const LS_KEY = "gudam_records_v1";
+const LS_URL = "gudam_gs_url";
+const LS_SYNC = "gudam_last_sync";
+
+/* =========================================================
+   KPI CATALOG  (type: pct | hours | minutes | ratio | days)
+   t = target spec: {op:'gte'|'lte'|'lt'|'range'|'higher'|'lower', v | v:[min,max]}
+========================================================= */
+const KPIS = {
+RMW: [
+ {id:"rmw01", en:"Inventory Accuracy", bn:"মজুদ নির্ভুলতা", type:"pct", num:"System Inventory", den:"Physical Inventory", t:{op:"gte",v:99}, tt:"≥99%", f:"(System ÷ Physical) × 100"},
+ {id:"rmw02", en:"Receiving Accuracy", bn:"গ্রহণ নির্ভুলতা", type:"pct", num:"Correct Receipts", den:"Total Receipts", t:{op:"gte",v:99.5}, tt:"≥99.5%", f:"(Correct Receipts ÷ Total Receipts) × 100"},
+ {id:"rmw03", en:"On-Time Material Receipt", bn:"সময়মতো উপকরণ প্রাপ্তি", type:"pct", num:"On-Time Deliveries", den:"Total Deliveries", t:{op:"gte",v:98}, tt:"≥98%", f:"(On-Time ÷ Total Deliveries) × 100"},
+ {id:"rmw04", en:"Put-away Time", bn:"সংরক্ষণ সময়", type:"hours", num:"Total Put-away Time (hrs)", den:"Total Receipts", t:{op:"lte",v:2}, tt:"≤2 hrs", f:"Total Put-away Time ÷ Total Receipts"},
+ {id:"rmw05", en:"Put-away Accuracy", bn:"সংরক্ষণ নির্ভুলতা", type:"pct", num:"Correctly Stored Items", den:"Total Stored Items", t:{op:"gte",v:99.5}, tt:"≥99.5%", f:"(Correctly Stored ÷ Total Stored) × 100"},
+ {id:"rmw06", en:"Material Picking Accuracy", bn:"উপকরণ পিকিং নির্ভুলতা", type:"pct", num:"Correct Picks", den:"Total Picks", t:{op:"gte",v:99.8}, tt:"≥99.8%", f:"(Correct Picks ÷ Total Picks) × 100"},
+ {id:"rmw07", en:"Material Issue Lead Time", bn:"উপকরণ ইস্যু লিড টাইম", type:"minutes", num:"Total Issue Time (min)", den:"Total Material Requests", t:{op:"lte",v:30}, tt:"≤30 min", f:"Total Issue Time ÷ Total Requests"},
+ {id:"rmw08", en:"Material Availability", bn:"উপকরণ প্রাপ্যতা", type:"pct", num:"Available Items", den:"Required Items", t:{op:"gte",v:99}, tt:"≥99%", f:"(Available ÷ Required) × 100"},
+ {id:"rmw09", en:"Stock-out Rate", bn:"স্টক-আউট হার", type:"pct", num:"Stock-out Items", den:"Total Inventory Items", t:{op:"lt",v:1}, tt:"<1%", f:"(Stock-outs ÷ Total Items) × 100"},
+ {id:"rmw10", en:"Inventory Turnover", bn:"মজুদ আবর্তন", type:"ratio", num:"Material Consumption", den:"Average Inventory", t:{op:"higher"}, tt:"Higher is better", f:"Consumption ÷ Avg Inventory"},
+ {id:"rmw11", en:"Inventory Days on Hand", bn:"মজুদ দিবস (DOH)", type:"days", num:"Average Inventory", den:"Daily Material Consumption", t:{op:"range",v:[3,7]}, tt:"3–7 days", f:"Avg Inventory ÷ Daily Consumption"},
+ {id:"rmw12", en:"FIFO Compliance", bn:"FIFO পরিপালন", type:"pct", num:"FIFO Transactions", den:"Total Transactions", t:{op:"gte",v:99}, tt:"≥99%", f:"(FIFO Txns ÷ Total Txns) × 100"},
+ {id:"rmw13", en:"Damaged Material Rate", bn:"ক্ষতিগ্রস্ত উপকরণ হার", type:"pct", num:"Damaged Materials", den:"Total Received Materials", t:{op:"lt",v:0.5}, tt:"<0.5%", f:"(Damaged ÷ Total Received) × 100"},
+ {id:"rmw14", en:"Warehouse Space Utilization", bn:"গুদাম স্থান ব্যবহার", type:"pct", num:"Used Storage Space", den:"Total Storage Capacity", t:{op:"range",v:[80,90]}, tt:"80–90%", f:"(Used ÷ Total Capacity) × 100"},
+ {id:"rmw15", en:"Cycle Count Accuracy", bn:"সাইকেল কাউন্ট নির্ভুলতা", type:"pct", num:"Correct Count Items", den:"Total Counted Items", t:{op:"gte",v:99}, tt:"≥99%", f:"(Correct Counts ÷ Total Counted) × 100"},
+ {id:"rmw16", en:"Inventory Record Update Time", bn:"মজুদ রেকর্ড হালনাগাদ সময়", type:"minutes", num:"Total Update Time (min)", den:"Total Transactions", t:{op:"lte",v:10}, tt:"≤10 min (real-time)", f:"Total Update Time ÷ Total Txns"},
+ {id:"rmw17", en:"Material Return Rate", bn:"উপকরণ ফেরত হার", type:"pct", num:"Returned Materials", den:"Issued Materials", t:{op:"lt",v:2}, tt:"<2%", f:"(Returned ÷ Issued) × 100"},
+ {id:"rmw18", en:"Supplier Delivery Accuracy", bn:"সরবরাহকারী ডেলিভারি নির্ভুলতা", type:"pct", num:"Correct Supplier Deliveries", den:"Total Deliveries", t:{op:"gte",v:98}, tt:"≥98%", f:"(Correct ÷ Total Deliveries) × 100"},
+ {id:"rmw19", en:"Warehouse Safety Compliance", bn:"গুদাম নিরাপত্তা পরিপালন", type:"pct", num:"Safety Audit Score", den:"Maximum Score", t:{op:"gte",v:100}, tt:"100%", f:"(Audit Score ÷ Max Score) × 100"},
+ {id:"rmw20", en:"5S Audit Score", bn:"৫এস অডিট স্কোর", type:"pct", num:"Audit Score", den:"Maximum Score", t:{op:"gte",v:95}, tt:"≥95%", f:"(Audit Score ÷ Max Score) × 100"}
+],
+FGW: [
+ {id:"fgw01", en:"FG Inventory Accuracy", bn:"এফজি মজুদ নির্ভুলতা", type:"pct", num:"System Inventory", den:"Physical Inventory", t:{op:"gte",v:99}, tt:"≥99%", f:"(System ÷ Physical) × 100"},
+ {id:"fgw02", en:"FG Receiving Accuracy", bn:"এফজি গ্রহণ নির্ভুলতা", type:"pct", num:"Correct Receipts", den:"Total Receipts", t:{op:"gte",v:99.5}, tt:"≥99.5%", f:"(Correct ÷ Total Receipts) × 100"},
+ {id:"fgw03", en:"Order Picking Accuracy", bn:"অর্ডার পিকিং নির্ভুলতা", type:"pct", num:"Correct Orders Picked", den:"Total Orders Picked", t:{op:"gte",v:99.8}, tt:"≥99.8%", f:"(Correct ÷ Total Orders Picked) × 100"},
+ {id:"fgw04", en:"Shipment Accuracy", bn:"শিপমেন্ট নির্ভুলতা", type:"pct", num:"Correct Shipments", den:"Total Shipments", t:{op:"gte",v:99.8}, tt:"≥99.8%", f:"(Correct ÷ Total Shipments) × 100"},
+ {id:"fgw05", en:"On-Time Shipment", bn:"সময়মতো শিপমেন্ট", type:"pct", num:"On-Time Shipments", den:"Total Shipments", t:{op:"gte",v:98}, tt:"≥98%", f:"(On-Time ÷ Total Shipments) × 100"},
+ {id:"fgw06", en:"Dispatch Lead Time", bn:"ডিসপ্যাচ লিড টাইম", type:"hours", num:"Total Dispatch Time (hrs)", den:"Total Shipments", t:{op:"lte",v:2}, tt:"≤2 hrs", f:"Total Dispatch Time ÷ Total Shipments"},
+ {id:"fgw07", en:"Customer Order Fill Rate", bn:"অর্ডার ফিল রেট", type:"pct", num:"Orders Fully Shipped", den:"Total Orders", t:{op:"gte",v:99}, tt:"≥99%", f:"(Fully Shipped ÷ Total Orders) × 100"},
+ {id:"fgw08", en:"Perfect Order Rate", bn:"পারফেক্ট অর্ডার রেট", type:"pct", num:"Orders with No Errors", den:"Total Orders", t:{op:"gte",v:98}, tt:"≥98%", f:"(Error-Free ÷ Total Orders) × 100"},
+ {id:"fgw09", en:"Container Loading Accuracy", bn:"কন্টেইনার লোডিং নির্ভুলতা", type:"pct", num:"Correct Containers Loaded", den:"Total Containers", t:{op:"gte",v:100}, tt:"100%", f:"(Correct ÷ Total Containers) × 100"},
+ {id:"fgw10", en:"Barcode Scanning Accuracy", bn:"বারকোড স্ক্যান নির্ভুলতা", type:"pct", num:"Successful Scans", den:"Total Scans", t:{op:"gte",v:99.9}, tt:"≥99.9%", f:"(Successful ÷ Total Scans) × 100"},
+ {id:"fgw11", en:"FG Inventory Days", bn:"এফজি মজুদ দিবস", type:"days", num:"Avg FG Inventory", den:"Avg Daily Shipment", t:{op:"range",v:[1,3]}, tt:"1–3 days", f:"Avg FG Inventory ÷ Avg Daily Shipment"},
+ {id:"fgw12", en:"Warehouse Space Utilization", bn:"গুদাম স্থান ব্যবহার", type:"pct", num:"Used Warehouse Space", den:"Total Capacity", t:{op:"range",v:[80,90]}, tt:"80–90%", f:"(Used ÷ Total Capacity) × 100"},
+ {id:"fgw13", en:"Product Damage Rate", bn:"পণ্য ক্ষতির হার", type:"pct", num:"Damaged Cartons", den:"Total Cartons Stored", t:{op:"lt",v:0.2}, tt:"<0.2%", f:"(Damaged ÷ Total Cartons) × 100"},
+ {id:"fgw14", en:"Shipment Documentation Accuracy", bn:"শিপমেন্ট ডকুমেন্ট নির্ভুলতা", type:"pct", num:"Correct Documents", den:"Total Shipments", t:{op:"gte",v:100}, tt:"100%", f:"(Correct Docs ÷ Total Shipments) × 100"},
+ {id:"fgw15", en:"Customer Delivery Accuracy", bn:"কাস্টমার ডেলিভারি নির্ভুলতা", type:"pct", num:"Correct Customer Deliveries", den:"Total Deliveries", t:{op:"gte",v:99.5}, tt:"≥99.5%", f:"(Correct ÷ Total Deliveries) × 100"},
+ {id:"fgw16", en:"Shipment Cycle Time", bn:"শিপমেন্ট সাইকেল টাইম", type:"hours", num:"Total Cycle Time (hrs)", den:"Total Shipments", t:{op:"lower"}, tt:"Continuous reduction", f:"Completion Time − Dispatch Request Time (avg)"},
+ {id:"fgw17", en:"Inventory Turnover", bn:"মজুদ আবর্তন", type:"ratio", num:"Cost of Goods Sold", den:"Avg FG Inventory", t:{op:"higher"}, tt:"Higher is better", f:"COGS ÷ Avg FG Inventory"},
+ {id:"fgw18", en:"Warehouse Productivity", bn:"গুদাম উৎপাদনশীলতা", type:"ratio", num:"Total Cartons Handled", den:"Warehouse Labor Hours", t:{op:"higher"}, tt:"Continuous improvement", f:"Cartons Handled ÷ Labor Hours"},
+ {id:"fgw19", en:"Warehouse Safety Compliance", bn:"গুদাম নিরাপত্তা পরিপালন", type:"pct", num:"Safety Audit Score", den:"Maximum Score", t:{op:"gte",v:100}, tt:"100%", f:"(Audit Score ÷ Max Score) × 100"},
+ {id:"fgw20", en:"5S Audit Score", bn:"৫এস অডিট স্কোর", type:"pct", num:"Audit Score", den:"Maximum Score", t:{op:"gte",v:95}, tt:"≥95%", f:"(Audit Score ÷ Max Score) × 100"}
+]};
+
+/* =========================================================
+   I18N
+========================================================= */
+const I18N = {
+ en:{tabDash:"Dashboard", tabAdmin:"Admin", viewOnly:"View only — data managed by Admin",
+  sumTracked:"KPIs Reported", sumOn:"On Target", sumWatch:"Watch", sumOff:"Off Target", sumHealth:"JIT Health Score",
+  adminAccess:"Admin Access", adminPrompt:"Enter the admin password to add, update, replace or delete KPI records.",
+  unlock:"Unlock", addEntry:"Add KPI Entry", editEntry:"Edit KPI Entry", fWh:"Warehouse", fMonth:"Month", fNote:"Note (optional)",
+  cancel:"Cancel", save:"Save Entry", update:"Update Entry", records:"KPI Records", thMonth:"Month", thInputs:"Inputs", thValue:"Value", thNote:"Note",
+  exportJson:"⬇ Export JSON", importJson:"⬆ Import JSON", clearAll:"Delete All Records", sync:"Google Sheets Sync",
+  saveUrl:"Save URL", loadSheet:"⟳ Load from Sheet", pushSheet:"↑ Push to Sheet",
+  syncNote:"Push replaces the sheet with the current records. Load replaces local records with the sheet contents. All data is also cached locally in this browser.",
+  sub:"Goods & Utilization Data Analytics Matrix — Warehouse KPI Dashboard", noData:"No data yet", target:"Target"},
+ bn:{tabDash:"ড্যাশবোর্ড", tabAdmin:"অ্যাডমিন", viewOnly:"শুধু দেখার জন্য — ডেটা অ্যাডমিন নিয়ন্ত্রিত",
+  sumTracked:"রিপোর্টকৃত KPI", sumOn:"লক্ষ্যমাত্রায়", sumWatch:"সতর্কতা", sumOff:"লক্ষ্যের বাইরে", sumHealth:"JIT স্বাস্থ্য স্কোর",
+  adminAccess:"অ্যাডমিন প্রবেশ", adminPrompt:"KPI রেকর্ড যোগ, হালনাগাদ, প্রতিস্থাপন বা মুছতে অ্যাডমিন পাসওয়ার্ড দিন।",
+  unlock:"আনলক", addEntry:"KPI এন্ট্রি যোগ করুন", editEntry:"KPI এন্ট্রি সম্পাদনা", fWh:"গুদাম", fMonth:"মাস", fNote:"নোট (ঐচ্ছিক)",
+  cancel:"বাতিল", save:"সংরক্ষণ করুন", update:"হালনাগাদ করুন", records:"KPI রেকর্ডসমূহ", thMonth:"মাস", thInputs:"ইনপুট", thValue:"মান", thNote:"নোট",
+  exportJson:"⬇ JSON এক্সপোর্ট", importJson:"⬆ JSON ইমপোর্ট", clearAll:"সব রেকর্ড মুছুন", sync:"গুগল শিট সিঙ্ক",
+  saveUrl:"URL সংরক্ষণ", loadSheet:"⟳ শিট থেকে লোড", pushSheet:"↑ শিটে পাঠান",
+  syncNote:"পুশ করলে শিটের ডেটা বর্তমান রেকর্ড দিয়ে প্রতিস্থাপিত হয়। লোড করলে স্থানীয় রেকর্ড শিটের ডেটা দিয়ে প্রতিস্থাপিত হয়। সব ডেটা এই ব্রাউজারেও সংরক্ষিত থাকে।",
+  sub:"গুডস অ্যান্ড ইউটিলাইজেশন ডেটা অ্যানালিটিক্স ম্যাট্রিক্স — গুদাম KPI ড্যাশবোর্ড", noData:"এখনও ডেটা নেই", target:"লক্ষ্য"}
+};
+let lang = localStorage.getItem("gudam_lang") || "en";
+
+function toggleLang(){ lang = lang==="en"?"bn":"en"; localStorage.setItem("gudam_lang",lang); applyLang(); }
+function applyLang(){
+  document.getElementById("langBtn").textContent = lang==="en"?"বাংলা":"EN";
+  document.getElementById("subTitle").textContent = I18N[lang].sub;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ const k=el.getAttribute("data-i18n"); if(I18N[lang][k]) el.textContent=I18N[lang][k]; });
+  renderDash(); renderTable(); fillKpiSelect();
+}
+
+/* =========================================================
+   STATE
+========================================================= */
+let records = JSON.parse(localStorage.getItem(LS_KEY) || "[]");
+let curWH = "RMW";
+let editingId = null;
+
+function persist(){ localStorage.setItem(LS_KEY, JSON.stringify(records)); }
+function kpiById(id){ return [...KPIS.RMW,...KPIS.FGW].find(k=>k.id===id); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* =========================================================
+   CALC + STATUS
+========================================================= */
+function calcValue(k, num, den){
+  if(den===0||den==null||num==null||isNaN(num)||isNaN(den)) return null;
+  let v = num/den;
+  if(k.type==="pct") v*=100;
+  return v;
+}
+function fmtVal(k,v){
+  if(v==null) return "—";
+  const d = (k.type==="pct")?(v>=100?1:2):(k.type==="ratio"?2:1);
+  return v.toFixed(d);
+}
+function unitOf(k){ return {pct:"%",hours:"hrs",minutes:"min",ratio:"×",days:"days"}[k.type]; }
+function statusOf(k,v,prev){
+  if(v==null) return "na";
+  const t=k.t;
+  if(t.op==="gte"){ if(v>=t.v) return "ok"; if(v>=t.v-(k.type==="pct"?2:t.v*0.1)) return "warn"; return "bad"; }
+  if(t.op==="lte"){ if(v<=t.v) return "ok"; if(v<=t.v*1.25) return "warn"; return "bad"; }
+  if(t.op==="lt"){ if(v<t.v) return "ok"; if(v<t.v*1.5) return "warn"; return "bad"; }
+  if(t.op==="range"){ const[a,b]=t.v; if(v>=a&&v<=b) return "ok"; if(v>=a*0.85&&v<=b*1.15) return "warn"; return "bad"; }
+  if(t.op==="higher"){ if(prev==null) return "na"; return v>=prev?"ok":"warn"; }
+  if(t.op==="lower"){ if(prev==null) return "na"; return v<=prev?"ok":"warn"; }
+  return "na";
+}
+
+/* =========================================================
+   PUBLIC DASHBOARD
+========================================================= */
+function setWH(w){ curWH=w;
+  document.getElementById("whR").classList.toggle("on",w==="RMW");
+  document.getElementById("whF").classList.toggle("on",w==="FGW");
+  renderDash();
+}
+function monthsAvailable(){
+  return [...new Set(records.map(r=>r.month))].sort().reverse();
+}
+function fillMonthSel(){
+  const sel=document.getElementById("monthSel"); const cur=sel.value;
+  const ms=monthsAvailable();
+  sel.innerHTML = ms.length? ms.map(m=>`<option value="${m}">${m}</option>`).join("") : `<option value="">—</option>`;
+  if(ms.includes(cur)) sel.value=cur;
+}
+function sparkline(vals){
+  if(vals.length<2) return "";
+  const w=110,h=26,min=Math.min(...vals),max=Math.max(...vals),rng=(max-min)||1;
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-3-((v-min)/rng)*(h-6)).toFixed(1)}`).join(" ");
+  return `<svg class="kspark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="#4FA3E3" stroke-width="1.6"/><circle cx="${pts.split(' ').pop().split(',')[0]}" cy="${pts.split(' ').pop().split(',')[1]}" r="2.4" fill="#FFB020"/></svg>`;
+}
+function renderDash(){
+  fillMonthSel();
+  const month=document.getElementById("monthSel").value;
+  const grid=document.getElementById("kpiGrid"); grid.innerHTML="";
+  let on=0,watch=0,off=0,tracked=0;
+  KPIS[curWH].forEach((k,i)=>{
+    const hist=records.filter(r=>r.kpi===k.id).sort((a,b)=>a.month.localeCompare(b.month));
+    const rec=hist.find(r=>r.month===month);
+    const idx=hist.findIndex(r=>r.month===month);
+    const prev=idx>0?calcValue(k,hist[idx-1].num,hist[idx-1].den):null;
+    const v=rec?calcValue(k,rec.num,rec.den):null;
+    const st=statusOf(k,v,prev);
+    if(v!=null){tracked++; if(st==="ok")on++; else if(st==="warn")watch++; else if(st==="bad")off++;}
+    const slot=`${curWH}-${String(i+1).padStart(2,"0")}`;
+    const name=lang==="bn"?k.bn:k.en;
+    const vals=hist.map(r=>calcValue(k,r.num,r.den)).filter(x=>x!=null);
+    grid.insertAdjacentHTML("beforeend",`
+      <div class="kcard"><div class="tape ${st}"></div>
+        <div class="kbody">
+          <div class="kslot">${slot}</div>
+          <div class="kname">${name}</div>
+          <div class="kvalrow">${v!=null?`<span class="kval ${st==='ok'?'g':st==='warn'?'a':st==='bad'?'r':''}">${fmtVal(k,v)}</span><span class="kunit">${unitOf(k)}</span>`:`<span class="kna">${I18N[lang].noData}</span>`}</div>
+          <div class="ktarget">${I18N[lang].target}: <b>${k.tt}</b></div>
+          ${sparkline(vals)}
+          <div class="kformula">${k.f}</div>
+        </div>
+      </div>`);
+  });
+  document.getElementById("sTracked").innerHTML=`${tracked}<span style="font-size:15px;color:var(--dim)">/20</span>`;
+  document.getElementById("sOn").textContent=on;
+  document.getElementById("sWatch").textContent=watch;
+  document.getElementById("sOff").textContent=off;
+  const scored=on+watch+off;
+  const health=scored?Math.round((on+watch*0.5)/scored*100):null;
+  const hEl=document.getElementById("sHealth");
+  hEl.textContent=health!=null?health+"%":"—";
+  hEl.className="val "+(health==null?"m":health>=90?"g":health>=75?"a":"r");
+  const ls=localStorage.getItem(LS_SYNC);
+  document.getElementById("lastSync").textContent=ls?("☁ "+ls):"☁ local only";
+}
+
+/* =========================================================
+   TABS + ADMIN AUTH
+========================================================= */
+function showTab(t){
+  document.getElementById("viewDash").style.display=t==="dash"?"":"none";
+  document.getElementById("viewAdmin").style.display=t==="admin"?"":"none";
+  document.getElementById("tabDash").classList.toggle("on",t==="dash");
+  document.getElementById("tabAdmin").classList.toggle("on",t==="admin");
+  if(t==="dash") renderDash();
+}
+async function sha256(s){
+  const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));
+  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+}
+async function unlock(){
+  const pw=document.getElementById("pwInput").value;
+  let h; try{ h=await sha256(pw); }catch(e){ h=null; }
+  if(h===ADMIN_HASH || (h===null && pw==="gudam2026")){
+    sessionStorage.setItem("gudam_admin","1"); openAdmin();
+  } else {
+    const m=document.getElementById("pwMsg"); m.className="msg err"; m.textContent="Incorrect password.";
+  }
+}
+function openAdmin(){
+  document.getElementById("lockScreen").style.display="none";
+  document.getElementById("adminArea").style.display="";
+  document.getElementById("gsUrl").value=localStorage.getItem(LS_URL)||"";
+  fillKpiSelect(); renderTable();
+  const now=new Date(); document.getElementById("fMonth").value=now.toISOString().slice(0,7);
+}
+
+/* =========================================================
+   ADMIN: FORM
+========================================================= */
+function fillKpiSelect(){
+  const wh=document.getElementById("fWh").value;
+  const sel=document.getElementById("fKpi");
+  sel.innerHTML=KPIS[wh].map(k=>`<option value="${k.id}">${lang==="bn"?k.bn:k.en} — ${k.tt}</option>`).join("");
+  updateFormLabels();
+}
+function updateFormLabels(){
+  const k=kpiById(document.getElementById("fKpi").value); if(!k) return;
+  document.getElementById("numLbl").textContent=k.num;
+  document.getElementById("denLbl").textContent=k.den;
+  livePreview();
+}
+function livePreview(){
+  const k=kpiById(document.getElementById("fKpi").value); if(!k) return;
+  const n=parseFloat(document.getElementById("fNum").value), d=parseFloat(document.getElementById("fDen").value);
+  const v=calcValue(k,n,d);
+  document.getElementById("calcPreview").textContent = v==null?"= —":`= ${fmtVal(k,v)} ${unitOf(k)}  (${I18N[lang].target}: ${k.tt})`;
+}
+function saveEntry(){
+  const wh=document.getElementById("fWh").value, kpi=document.getElementById("fKpi").value;
+  const month=document.getElementById("fMonth").value;
+  const num=parseFloat(document.getElementById("fNum").value), den=parseFloat(document.getElementById("fDen").value);
+  const note=document.getElementById("fNote").value.trim();
+  const m=document.getElementById("formMsg");
+  if(!month||isNaN(num)||isNaN(den)||den===0){ m.className="msg err"; m.textContent="Month, numerator and a non-zero denominator are required."; return; }
+  if(editingId){
+    const r=records.find(x=>x.id===editingId);
+    Object.assign(r,{wh,kpi,month,num,den,note,ts:new Date().toISOString()});
+    m.className="msg ok"; m.textContent="Record updated.";
+    cancelEdit();
+  } else {
+    const dup=records.find(r=>r.kpi===kpi&&r.month===month);
+    if(dup){ Object.assign(dup,{num,den,note,ts:new Date().toISOString()}); m.className="msg ok"; m.textContent="Existing record for this KPI & month replaced."; }
+    else { records.push({id:uid(),wh,kpi,month,num,den,note,ts:new Date().toISOString()}); m.className="msg ok"; m.textContent="Record saved."; }
+  }
+  persist(); renderTable(); renderDash();
+  document.getElementById("fNum").value=""; document.getElementById("fDen").value=""; document.getElementById("fNote").value=""; livePreview();
+  autoPush();
+}
+function editRec(id){
+  const r=records.find(x=>x.id===id); if(!r) return;
+  editingId=id;
+  document.getElementById("fWh").value=r.wh; fillKpiSelect();
+  document.getElementById("fKpi").value=r.kpi; updateFormLabels();
+  document.getElementById("fMonth").value=r.month;
+  document.getElementById("fNum").value=r.num; document.getElementById("fDen").value=r.den;
+  document.getElementById("fNote").value=r.note||"";
+  document.getElementById("formTitle").textContent=I18N[lang].editEntry;
+  document.getElementById("saveBtn").textContent=I18N[lang].update;
+  document.getElementById("cancelEditBtn").style.display="";
+  livePreview(); window.scrollTo({top:0,behavior:"smooth"});
+}
+function cancelEdit(){
+  editingId=null;
+  document.getElementById("formTitle").textContent=I18N[lang].addEntry;
+  document.getElementById("saveBtn").textContent=I18N[lang].save;
+  document.getElementById("cancelEditBtn").style.display="none";
+}
+function delRec(id){
+  if(!confirm("Delete this record?")) return;
+  records=records.filter(r=>r.id!==id); persist(); renderTable(); renderDash(); autoPush();
+}
+function clearAll(){
+  if(!confirm("Delete ALL records? This cannot be undone locally.")) return;
+  if(!confirm("Are you absolutely sure?")) return;
+  records=[]; persist(); renderTable(); renderDash();
+}
+
+/* =========================================================
+   ADMIN: TABLE
+========================================================= */
+function renderTable(){
+  const tb=document.getElementById("recTbody"); if(!tb) return;
+  const fw=document.getElementById("filterWh").value, ft=document.getElementById("filterText").value.toLowerCase();
+  const fmSel=document.getElementById("filterMonth"); const curFm=fmSel.value;
+  const ms=monthsAvailable();
+  fmSel.innerHTML=`<option value="">All months</option>`+ms.map(m=>`<option value="${m}">${m}</option>`).join("");
+  if(ms.includes(curFm)) fmSel.value=curFm;
+  const fm=fmSel.value;
+  const rows=records
+    .filter(r=>(!fw||r.wh===fw)&&(!fm||r.month===fm))
+    .filter(r=>{ const k=kpiById(r.kpi); return !ft||(k&&(k.en+k.bn).toLowerCase().includes(ft)); })
+    .sort((a,b)=>b.month.localeCompare(a.month)||a.kpi.localeCompare(b.kpi));
+  tb.innerHTML=rows.map(r=>{
+    const k=kpiById(r.kpi); if(!k) return "";
+    const v=calcValue(k,r.num,r.den); const st=statusOf(k,v,null);
+    const stTxt={ok:"On target",warn:"Watch",bad:"Off target",na:"Trend"}[st];
+    return `<tr>
+      <td><span class="pill na">${r.wh}</span></td>
+      <td>${lang==="bn"?k.bn:k.en}</td>
+      <td class="mono" style="font-family:var(--mono)">${r.month}</td>
+      <td style="font-family:var(--mono);font-size:12px">${r.num} ÷ ${r.den}</td>
+      <td style="font-family:var(--mono)"><b>${fmtVal(k,v)}</b> ${unitOf(k)}</td>
+      <td><span class="pill ${st}">${stTxt}</span></td>
+      <td style="color:var(--muted);font-size:12.5px">${(r.note||"").replace(/</g,"&lt;")}</td>
+      <td style="white-space:nowrap">
+        <button class="btn ghost sm" onclick="editRec('${r.id}')">✎</button>
+        <button class="btn danger sm" onclick="delRec('${r.id}')">🗑</button>
+      </td></tr>`;
+  }).join("") || `<tr><td colspan="8" style="color:var(--dim);text-align:center;padding:20px">No records</td></tr>`;
+}
+
+/* =========================================================
+   IMPORT / EXPORT
+========================================================= */
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(records,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="gudam-kpi-records.json"; a.click();
+}
+function importJSON(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+      const data=JSON.parse(rd.result);
+      if(!Array.isArray(data)) throw 0;
+      data.forEach(r=>{ if(!r.id) r.id=uid(); });
+      records=data; persist(); renderTable(); renderDash();
+      const m=document.getElementById("tblMsg"); m.className="msg ok"; m.textContent=`Imported ${data.length} records.`;
+    }catch(e){ const m=document.getElementById("tblMsg"); m.className="msg err"; m.textContent="Invalid JSON file."; } };
+  rd.readAsText(f); ev.target.value="";
+}
+function exportCSV(){
+  const head="id,warehouse,kpi_id,kpi_name,month,numerator,denominator,value,unit,note,timestamp";
+  const lines=records.map(r=>{ const k=kpiById(r.kpi); const v=calcValue(k,r.num,r.den);
+    return [r.id,r.wh,r.kpi,`"${k?k.en:""}"`,r.month,r.num,r.den,v==null?"":fmtVal(k,v),k?unitOf(k):"",`"${(r.note||"").replace(/"/g,'""')}"`,r.ts].join(","); });
+  const blob=new Blob([head+"\n"+lines.join("\n")],{type:"text/csv"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="gudam-kpi-records.csv"; a.click();
+}
+
+/* =========================================================
+   GOOGLE SHEETS SYNC
+========================================================= */
+function gsUrl(){ return localStorage.getItem(LS_URL)||""; }
+function saveGsUrl(){
+  localStorage.setItem(LS_URL, document.getElementById("gsUrl").value.trim());
+  const m=document.getElementById("syncMsg"); m.className="msg ok"; m.textContent="URL saved.";
+}
+function markSync(){
+  const t=new Date().toLocaleString(); localStorage.setItem(LS_SYNC,t);
+  document.getElementById("lastSync").textContent="☁ "+t;
+}
+async function loadFromSheet(silent){
+  const url=gsUrl(); const m=document.getElementById("syncMsg");
+  if(!url){ if(!silent){m.className="msg err";m.textContent="Set the Apps Script URL first.";} return; }
+  try{
+    const res=await fetch(url+"?action=all"); const data=await res.json();
+    if(data&&Array.isArray(data.records)){ records=data.records; persist(); renderTable&&renderTable(); renderDash(); markSync();
+      if(!silent){ m.className="msg ok"; m.textContent=`Loaded ${data.records.length} records from sheet.`; } }
+    else throw 0;
+  }catch(e){ if(!silent){ m.className="msg err"; m.textContent="Load failed — check the URL and deployment (Anyone access)."; } }
+}
+async function pushToSheet(){
+  const url=gsUrl(); const m=document.getElementById("syncMsg");
+  if(!url){ m.className="msg err"; m.textContent="Set the Apps Script URL first."; return; }
+  try{
+    await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({action:"replaceAll",records})});
+    markSync(); m.className="msg ok"; m.textContent=`Pushed ${records.length} records to sheet.`;
+  }catch(e){ m.className="msg err"; m.textContent="Push failed — check the URL."; }
+}
+let pushTimer=null;
+function autoPush(){ // debounce auto-push after admin edits
+  if(!gsUrl()) return;
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(()=>pushToSheet().catch(()=>{}),1500);
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+(function init(){
+  applyLang();
+  if(sessionStorage.getItem("gudam_admin")==="1") openAdmin();
+  renderDash();
+  if(gsUrl()) loadFromSheet(true); // auto-load latest data for viewers
+})();
+</script>
+</body>
+</html>
